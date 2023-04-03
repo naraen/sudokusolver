@@ -7,17 +7,13 @@
 
   const readline = require("readline");
 
-  //TODO: propagate naked twins.
   //TODO: Rename findsingle to findOnlyOnce
   //TODO: Rename sets to peers
   //TODO: query for solved count
-  //TODO: solve count at the end of every operation.
-  //TODO: rewind hint
+  //TODO: support modification of hint history
+  //TODO: support replay of hint history
   //TODO: investigate why parser  error spew shown in stdout/stderr is not suppresed by try-catch - Don
-  //TODO: fix ambiguity in grammar. Done.
-  //TODO: add help command in grammar
-  //TODO: forgive lack of spacing in cellIdx = value syntax.  Done
-  //TODO: implement quit command in the grammar - DONE
+  //TODO: add help command to the grammar
   //TODO: Enforce numbers to be int
   //TODO: Change internal cellIdx to be RowCol reference instead of array index reference
 
@@ -26,7 +22,7 @@
   var gridFromConsoleInput;
   var hintHistory = [];
   var stash = [];
-  var color=32;
+  var color = 32;
   function receiveInput(input) {
     inputThroughConsole += (input || "").toString().replace(/[^0-9]/g, "");
 
@@ -72,11 +68,29 @@
     }
   });
 
-  function inputToCellIdx(inp) {
-    return parseInt(inp / 10 - 1) * 9 + (inp % 10) - 1;
-  }
-
   function runCommand(commandId, command) {
+    const saveState = [
+      "set_value",
+      "remove_value",
+      "use_hint",
+      "use_naked_twins",
+      "use_only_choice",
+      "use_brute_force",
+    ];
+    const skipStatus = [
+      "init_grid",
+      "show_input",
+      "show_unsolved_count",
+      "show_hint_history",
+      "is_it_solved",
+      "is_it_stuck",
+      "is_it_correct",
+      "set_color",
+      "set_debug",
+    ];
+
+    if (saveState.indexOf(commandId) != -1)
+      stash.push(gridFromConsoleInput.serialize());
 
     switch (commandId) {
       case "init_grid":
@@ -133,6 +147,11 @@
       case "is_it_correct":
         console.log(gridFromConsoleInput.checkForCorrectness() ? "Yes" : "No");
         break;
+      case "use_naked_twins":
+        var currentState = gridFromConsoleInput.serialize();
+        stash.push(currentState);
+        gridFromConsoleInput.useNakedTwins();
+        break;
       case "use_only_choice":
         var currentState = gridFromConsoleInput.serialize();
         stash.push(currentState);
@@ -146,10 +165,10 @@
         break;
       case "set_color":
         console.log(command);
-        color=parseInt(command.numbers.value);
+        color = parseInt(command.numbers.value);
         break;
       case "set_debug":
-        gridSetLogLevel(command.qualifier == 'on' ? "Debug" : 'NOP');
+        gridSetLogLevel(command.qualifier == "on" ? "Debug" : "NOP");
         break;
       case "use_hint":
         var { cellIdx, value } = command;
@@ -159,9 +178,8 @@
           cellIdx = inputToCellIdx(cellIdx);
           console.log(`Received hint.  ${cellIdx} = ${value}`);
           hintHistory.push([cellIdx, value]);
-          var currentState = gridFromConsoleInput.serialize();
-          stash.push(currentState);
-          gridFromConsoleInput.useHints([[cellIdx, value]]);
+
+          gridFromConsoleInput.setValue(cellIdx, value);
         }
         break;
       case "set_value":
@@ -169,10 +187,8 @@
         if (isNaN(cellIdx) || isNaN(value)) {
           console.log("could not parse command", command);
         } else {
-          cellIdx = inputToCellIdx(cellIdx);
           console.log(`Applying.  ${cellIdx} = ${value}`);
-          var currentState = gridFromConsoleInput.serialize();
-          stash.push(currentState);
+
           gridFromConsoleInput.setValue(cellIdx, value);
         }
         break;
@@ -181,16 +197,21 @@
         if (isNaN(cellIdx) || isNaN(value)) {
           console.log("could not parse command", command);
         } else {
-          cellIdx = inputToCellIdx(cellIdx);
           console.log(`Applying.  ${cellIdx} != ${value}`);
-          var currentState = gridFromConsoleInput.serialize();
-          stash.push(currentState);
+
           gridFromConsoleInput.removeCandidate(cellIdx, value);
         }
-
         break;
       default:
         console.log("¯\\_(ツ)_/¯");
+    }
+
+    if (skipStatus.indexOf(commandId) == -1) {
+      console.log(
+        "Unfilled cells",
+        gridFromConsoleInput.unsolvedCount(),
+        gridFromConsoleInput.isHalted() ? "Stuck" : ""
+      );
     }
   }
 })();

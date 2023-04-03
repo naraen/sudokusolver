@@ -29,13 +29,14 @@
       object: "it",
       qualifier: "correct",
     },
-    { usecase: "set_color", verb: "set", object: "color"},
-    { usecase: "set_debug", verb: "set", object: "debug"},
+    { usecase: "set_color", verb: "set", object: "color" },
+    { usecase: "set_debug", verb: "set", object: "debug" },
     { usecase: "set_value", verb: "set", object: "value" },
     { usecase: "remove_value", verb: "remove", object: "value" },
     { usecase: "use_hint", verb: "use", object: "hint" },
     { usecase: "use_only_choice", verb: "use", strategy: "only choice" },
     { usecase: "use_brute_force", verb: "use", strategy: "brute force" },
+    { usecase: "use_naked_twins", verb: "use", strategy: "naked twins" },
   ];
 
   function parseInput(input) {

@@ -5,7 +5,7 @@
 	    'command': ['show', 'unshow', 'use', 'init', 'reset', 'set', 'remove', 'is', 'rewind'],
 	    'object': ['grid', 'hint', 'value', 'it', 'unsolved', 'debug', 'input', 'color'],
 	    'qualifier' : ['solved', 'stuck', 'correct', 'history', 'count', 'on', 'off'],
-	    'strategy_word' : ['brute', 'force', 'only', 'choice']
+	    'strategy_word' : ['brute', 'force', 'only', 'choice', 'naked', 'twins']
 	}
 
 	const lexer = moo.compile({
@@ -36,9 +36,9 @@ command -> %command __ %object _
 			{% (t) => ({
 				verb: t[0].value,
 				object:  t[2].value,
-				cellIdx: Number(t[4].value),
+				cellIdx: parseInt(t[4].value),
 				operator:  t[6].value, 
-				value: Number(t[8].value) 
+				value: parseInt(t[8].value) 
 			}) %}
 
 		| %command __ %object __ numbers _

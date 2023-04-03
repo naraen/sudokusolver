@@ -9,7 +9,7 @@ It uses [Nearley parser](https://nearley.js.org/) with [moo tokenizer](http://gi
 It supports a few solving strategies.
  1. Eliminate
  2. Only choice
- 3. Naked Twins (not implemented yet)
+ 3. Naked Twins 
  4. Brute Force
 
 
@@ -191,6 +191,15 @@ Applies the 'Only Choice' strategy to the grid.
 Analyzes candidate values of each unsolved cell in a set, to find any candidate value that exist in exactly one cell.  Solves all such cell that it finds. 
 
 This strategy will run repeatedly until no more solves are found. 
+
+### use naked twins
+```
+    use naked twins
+```
+Applies the 'naked twins' strategy to the grid.
+
+This is an elimination strategy.   If exactly 2 cells in a set have the same 2 candidate values, then the two candidate values can be eliminated as candidates for other unsolved cells in the set. 
+
 
 ### use brute force
 ```

@@ -42,6 +42,9 @@
   const cellIdxToColIdx = (i) => i % 9;
   const cellIdxToBoxIdx = (i) =>
     parseInt(cellIdxToRowIdx(i) / 3) * 3 + parseInt(cellIdxToColIdx(i) / 3);
+  const cellIdxToRowColIdx = (i) => (parseInt(i / 9) + 1) * 10 + ((i % 9) + 1);
+  const rowColIdxToCellIdx = (i) => parseInt(i / 10 - 1) * 9 + (i % 10) - 1;
+
   const arrToObject = (arr, acc) =>
     arr.reduce((obj, currVal) => {
       obj[currVal] = "";
@@ -88,7 +91,7 @@
     const diagInfo = `${"".repeat(
       tabLevel * 2
     )} cellRemoveCandidate( cellIdx=${cellIdx}, value=${valueToRemove} )`;
-    isDebugLogging &&
+    if (isDebugLogging)
       console.log(diagInfo, `Entering.  Current value  ${cellValue[cellIdx]}`);
 
     if (isNaN(cellIdx))
@@ -99,7 +102,7 @@
       );
 
     if (cellValue[cellIdx] == parseInt(valueToRemove)) {
-      isDebugLogging && console.log(diagInfo, `Problem. Halting!`);
+      if (isDebugLogging) console.log(diagInfo, `Problem. Halting!`);
       isHalted = true;
       tabLevel--;
       return;
@@ -109,24 +112,24 @@
       .toString()
       .split("")
       .map((v) => parseInt(v));
-    isDebugLogging &&
+    if (isDebugLogging)
       console.log(diagInfo, "values to remove", JSON.stringify(valuesToRemove));
 
     valuesToRemove.forEach((v) => {
       if (!cellIsValueACandidate(cellIdx, v)) {
-        isDebugLogging && console.log(diagInfo, "Already removed. NoOp");
+        if (isDebugLogging) console.log(diagInfo, "Already removed. NoOp");
         return;
       }
 
       if (cellIsSolved(cellIdx)) {
-        isDebugLogging && console.log(diagInfo, "Already solved.  Exiting");
+        if (isDebugLogging) console.log(diagInfo, "Already solved.  Exiting");
         return;
       }
 
       var cellValuesAfterRemoval = parseInt(
         cellGetValueAsString(cellIdx).replace(v, "")
       );
-      isDebugLogging &&
+      if (isDebugLogging)
         console.log(
           diagInfo,
           `new value ${cellGetValueAsString(cellIdx).replace(v, "")}`
@@ -146,12 +149,12 @@
     if (isNaN(value) || value == undefined)
       throw new Error(`value: Expected number, was ${typeof value}`);
 
-    isDebugLogging &&
+    if (isDebugLogging)
       console.log(diagInfo, `Entering current=${cellValue[cellIdx]}`);
     if (isHalted || cellIsSolved(cellIdx)) return;
 
     cellValue[cellIdx] = parseInt(value);
-    isDebugLogging && console.log(diagInfo, "new value", cellValue[cellIdx]);
+    if (isDebugLogging) console.log(diagInfo, "new value", cellValue[cellIdx]);
 
     if (!cellIsSolved(cellIdx)) return;
 
@@ -173,9 +176,11 @@
     _self.isHalted = () => isHalted;
     _self.unsolvedCount = gridUnsolvedCount;
     _self.useBruteForce = gridUseBruteForce;
+    _self.useNakedTwins = gridNakedTwins;
     _self.useHints = gridUseHints;
-    _self.removeCandidate = cellRemoveCandidate;
-    _self.setValue = cellSetValue;
+    _self.removeCandidate = (idx, v) =>
+      cellRemoveCandidate(rowColIdxToCellIdx(idx), v);
+    _self.setValue = (idx, v) => cellSetValue(rowColIdxToCellIdx(idx), v);
 
     gridInit(input);
   }
@@ -191,7 +196,7 @@
         0
       );
       if (thisSum !== 45) {
-        isDebugLogging &&
+        if (isDebugLogging)
           console.log(diagInfo, `sum of set[${setIdx}]=${thisSum}`);
         isCorrect = false;
       }
@@ -202,12 +207,12 @@
 
   function gridDropCellFromUnsolvedSets(cellIdx) {
     const diagInfo = `gridDropCellFromUnsolvedSets ( ${cellIdx} )`;
-    isDebugLogging && console.log(diagInfo, "Entering");
+    if (isDebugLogging) console.log(diagInfo, "Entering");
 
     if (isNaN(cellIdx))
       throw new Error(`cellIdx: Expected number, was ${typeof cellIdx}`);
 
-    isDebugLogging &&
+    if (isDebugLogging)
       console.log(
         diagInfo,
         "Dropping from sets",
@@ -217,7 +222,7 @@
     gridGetSetsWithCellAsMember(cellIdx).forEach((setIdx) => {
       setsDropCellFromSet(setIdx, cellIdx);
     });
-    isDebugLogging && console.log(diagInfo, "Exiting");
+    if (isDebugLogging) console.log(diagInfo, "Exiting");
   }
 
   function gridGetSetsWithCellAsMember(cellIdx) {
@@ -242,7 +247,7 @@
     cleanInput.forEach((val, idx) => {
       if (isHalted) return;
       if (val == 0) return;
-      isDebugLogging && console.log(`Initializing cell ${idx} to ${val}`);
+      if (isDebugLogging) console.log(`Initializing cell ${idx} to ${val}`);
       cellSetValue(idx, val);
     });
   }
@@ -251,11 +256,64 @@
     return solvedCellCount === 81;
   }
 
+  function gridNakedTwins() {
+    if (isDebugLogging) console.log("solving for Naked twins");
+    var removalPropagationList = [];
+
+    unsolvedSets.forEach((s, idx) => {
+      var obj = {};
+
+      if (isDebugLogging) console.log(idx, JSON.stringify(s));
+      s.forEach((cellIdx) => {
+        var candidateValues = cellValue[cellIdx];
+        if (candidateValues.toString().length != 2) {
+          return;
+        }
+        if (obj[candidateValues] == undefined) {
+          obj[candidateValues] = [];
+        }
+        obj[candidateValues].push(cellIdx);
+      });
+
+      var twins = Object.keys(obj).filter((k) => {
+        return k.length == 2 && obj[k].length == 2;
+      });
+
+      if (twins.length === 0) {
+        return;
+      }
+      if (isDebugLogging) console.log(`Found twins ${twins}`);
+
+      twins.forEach((t) => {
+        var twinsCellIdxs = obj[t];
+        if (isDebugLogging) console.log(idx, JSON.stringify(t), twinsCellIdxs);
+
+        s.forEach((cellIdx) => {
+          if (twinsCellIdxs.indexOf(cellIdx) == -1) {
+            removalPropagationList.push([cellIdx, parseInt(t)]);
+            console.log(`\t${cellIdxToRowColIdx(cellIdx)}!=${t}`);
+          } else {
+            if (isDebugLogging) console.log("\t skipping", cellIdx);
+          }
+        });
+      });
+    });
+    if (isDebugLogging) console.log("Removal List", removalPropagationList);
+    removalPropagationList.forEach((r) => {
+      console.log(`Applying ${cellIdxToRowColIdx(r[0])} != ${r[1]}`);
+      cellRemoveCandidate(r[0], r[1]);
+    });
+    //iterate through all unsolved sets
+    //identify naked twins
+    //identify cells to propagate the removal to.
+    //propagate
+  }
+
   function gridPropagateCellValueToUnsolvedSets(cellIdx, cellValue) {
     const diagInfo = `gridPropagateCellValueToUnsolvedSets(${cellIdx}, ${cellValue}):`;
-    isDebugLogging && console.log(diagInfo, "Entering");
+    if (isDebugLogging) console.log(diagInfo, "Entering");
     if (isHalted) {
-      isDebugLogging && console.log(diagInfo, "Halted.  Not propagating");
+      if (isDebugLogging) console.log(diagInfo, "Halted.  Not propagating");
     }
 
     if (isNaN(cellIdx))
@@ -264,7 +322,7 @@
       throw new Error(`cellValue: Expected number, was ${typeof cellValue}`);
 
     var setIdxs = gridGetSetsWithCellAsMember(cellIdx);
-    isDebugLogging &&
+    if (isDebugLogging)
       console.log(diagInfo, "Indexes of sets containing this cell", setIdxs);
     var thisObj = {};
     arrToObject(unsolvedSets[setIdxs[0]], thisObj);
@@ -272,7 +330,7 @@
     arrToObject(unsolvedSets[setIdxs[2]], thisObj);
 
     var propagationList = Object.keys(thisObj);
-    isDebugLogging &&
+    if (isDebugLogging)
       console.log(diagInfo, "Unsolved cells", propagationList.toString());
     propagationList.forEach(
       (cellIdx) =>
@@ -344,7 +402,7 @@
     while (!gridIsSolved() && stash.length > 0 && loopCount > 0) {
       loopCount--;
       hint = stash.pop();
-      isDebugLogging && console.log("Trying :", JSON.stringify(hint.hints));
+      if (isDebugLogging) console.log("Trying :", JSON.stringify(hint.hints));
 
       gridInit(hint.state);
       cellSetValue(hint.cellIdx, hint.number);
@@ -368,7 +426,7 @@
       }
     }
 
-    isDebugLogging &&
+    if (isDebugLogging)
       console.log(
         "Hints :",
         gridIsSolved() ? hint.hints : "Couldn't generate hints"
@@ -385,7 +443,7 @@
 
   function setsDropCellFromSet(setIdx, cellIdx) {
     const diagInfo = `setsDropCellFromSet(setIdx=${setIdx}, cellIdx=${cellIdx})`;
-    isDebugLogging && console.log(diagInfo, `Entering`);
+    if (isDebugLogging) console.log(diagInfo, `Entering`);
 
     if (isNaN(setIdx) || setIdx == undefined)
       throw new Error(`setIdx: Expected number, was ${typeof setIdx}`);
@@ -393,16 +451,16 @@
       throw new Error(`cellIdx: Expected number, was ${typeof cellIdx}`);
 
     const set = unsolvedSets[setIdx];
-    isDebugLogging && console.log(diagInfo, `Set is ${JSON.stringify(set)}`);
+    if (isDebugLogging) console.log(diagInfo, `Set is ${JSON.stringify(set)}`);
     var posInSet = set.indexOf(cellIdx);
     if (posInSet === -1) {
-      isDebugLogging &&
+      if (isDebugLogging)
         console.log(diagInfo, "Cell index not in set. Nothing to remove");
       return;
     }
 
     set.splice(posInSet, 1);
-    isDebugLogging &&
+    if (isDebugLogging)
       console.log(diagInfo, `Exiting.  Modified set is ${JSON.stringify(set)}`);
   }
 
@@ -410,12 +468,13 @@
     var shouldContinue = true;
 
     while (shouldContinue && !isHalted && !gridIsSolved()) {
-      isDebugLogging && console.log("setsFindSingleCandidates");
+      if (isDebugLogging) console.log("setsFindSingleCandidates");
       var solves = {};
-      isDebugLogging && console.log(gridSerializeForDisplay());
+      if (isDebugLogging) console.log(gridSerializeForDisplay());
       unsolvedSets.forEach((set, idx) => {
         var candidates = setsGroupCellsByUnsolvedNumbers(set);
-        isDebugLogging && console.log(`${idx}  ${JSON.stringify(candidates)}`);
+        if (isDebugLogging)
+          console.log(`${idx}  ${JSON.stringify(candidates)}`);
         Object.keys(candidates).forEach((key) => {
           if (candidates[key].length === 1) {
             var cellIdx = candidates[key][0];
@@ -431,7 +490,7 @@
       });
       shouldContinue = solvedList.length > 0;
     }
-    isDebugLogging && console.log("Unsolved ", gridUnsolvedCount());
+    if (isDebugLogging) console.log("Unsolved ", gridUnsolvedCount());
   }
 
   function setsGetAll() {
