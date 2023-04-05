@@ -10,13 +10,8 @@
   //TODO: Rename findsingle to findOnlyOnce
   //TODO: Rename sets to peers
   //TODO: query for solved count
-  //TODO: support modification of hint history
   //TODO: support replay of hint history
-  //TODO: investigate why parser  error spew shown in stdout/stderr is not suppresed by try-catch - Don
-  //TODO: add help command to the grammar
   //TODO: Enforce numbers to be int
-  //TODO: Change internal cellIdx to be RowCol reference instead of array index reference
-  //TODO: Convert output of brute force strategey to display rowColIdx - DONE
 
   var inputThroughConsole = "";
   var boolIsDoneReceiving = true;
@@ -149,7 +144,7 @@
         console.log(gridFromConsoleInput.isHalted() ? "Yes" : "No");
         break;
       case "is_it_correct":
-        console.log(gridFromConsoleInput.isCorrect() ? "Yes" : "No");
+        console.log(gridFromConsoleInput.checkForCorrectness() ? "Yes" : "No");
         break;
       case "use_naked_twins":
         gridFromConsoleInput.useNakedTwins();
