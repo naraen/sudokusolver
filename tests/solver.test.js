@@ -15,7 +15,7 @@
     });
   });
 
-  test("Test if solution is correct", () => {
+  test("Test if solution is correct, should be true", () => {
     var inputString = `439672815
 781395264
 562841397
@@ -73,5 +73,22 @@
 248519736`;
     var testGrid = new Grid(inputString);
     expect(testGrid.isSolved()).toBe(true);
+  });
+
+  test("Brute force should solve this and not get stuck", () => {
+    var input = `
+    005 200 070 
+    003 001 000 
+    020 000 005 
+    670 000 480 
+    001 900 000 
+    000 700 300 
+    084 050 600 
+    100 004 000 
+    090 000 007`;
+
+    var testGrid = new Grid(input);
+    testGrid.useBruteForce();
+    expect(testGrid.isSolved && testGrid.checkForCorrectness()).toBe(true);
   });
 })();

@@ -16,6 +16,7 @@
   //TODO: add help command to the grammar
   //TODO: Enforce numbers to be int
   //TODO: Change internal cellIdx to be RowCol reference instead of array index reference
+  //TODO: Convert output of brute force strategey to display rowColIdx - DONE
 
   var inputThroughConsole = "";
   var boolIsDoneReceiving = true;
@@ -89,13 +90,15 @@
       "set_debug",
     ];
 
-    if (saveState.indexOf(commandId) != -1)
+    if (saveState.indexOf(commandId) != -1) {
       stash.push(gridFromConsoleInput.serialize());
+    }
 
     switch (commandId) {
       case "init_grid":
         inputThroughConsole = "";
         hintHistory = [];
+        stash = [];
         receiveInput(command.numbers);
         break;
       case "show_grid":
@@ -124,6 +127,7 @@
           console.log("! No current grid");
           return;
         }
+        stash = [];
         gridFromConsoleInput = new Grid(inputThroughConsole);
         break;
       case "show_input":
@@ -145,21 +149,15 @@
         console.log(gridFromConsoleInput.isHalted() ? "Yes" : "No");
         break;
       case "is_it_correct":
-        console.log(gridFromConsoleInput.checkForCorrectness() ? "Yes" : "No");
+        console.log(gridFromConsoleInput.isCorrect() ? "Yes" : "No");
         break;
       case "use_naked_twins":
-        var currentState = gridFromConsoleInput.serialize();
-        stash.push(currentState);
         gridFromConsoleInput.useNakedTwins();
         break;
       case "use_only_choice":
-        var currentState = gridFromConsoleInput.serialize();
-        stash.push(currentState);
         gridFromConsoleInput.findSingleCandidates();
         break;
       case "use_brute_force":
-        var currentState = gridFromConsoleInput.serialize();
-        stash.push(currentState);
         var hints = gridFromConsoleInput.useBruteForce();
         console.log(`hints = ${JSON.stringify(hints)}`);
         break;
@@ -175,7 +173,6 @@
         if (isNaN(cellIdx) || isNaN(value)) {
           console.log("could not parse hints", command);
         } else {
-          cellIdx = inputToCellIdx(cellIdx);
           console.log(`Received hint.  ${cellIdx} = ${value}`);
           hintHistory.push([cellIdx, value]);
 

@@ -164,7 +164,7 @@
   }
 
   function Grid(input) {
-    console.log("isLoggingEnabled", isDebugLogging);
+    //console.log("isLoggingEnabled", isDebugLogging);
     var _self = this;
 
     _self.checkForCorrectness = gridCheckForCorrectness;
@@ -399,7 +399,9 @@
 
     var loopCount = 50;
     var hint = null;
-    while (!gridIsSolved() && stash.length > 0 && loopCount > 0) {
+    var isGridSolvedAndCorrect = gridIsSolved() && gridCheckForCorrectness();
+
+    while (!isGridSolvedAndCorrect && stash.length > 0 && loopCount > 0) {
       loopCount--;
       hint = stash.pop();
       if (isDebugLogging) console.log("Trying :", JSON.stringify(hint.hints));
@@ -408,7 +410,9 @@
       cellSetValue(hint.cellIdx, hint.number);
       setsFindSingleCandidates();
 
-      if (!gridIsSolved() && !isHalted) {
+      isGridSolvedAndCorrect = gridIsSolved() && gridCheckForCorrectness();
+
+      if (!isGridSolvedAndCorrect && !isHalted) {
         thisState = gridSerialize();
         firstUnsolvedPosition = thisState.indexOf(0);
         cellGetValueAsString(firstUnsolvedPosition)
@@ -426,12 +430,16 @@
       }
     }
 
-    if (isDebugLogging)
+    if (isDebugLogging) {
+      if (loopCount === 0) console.log("Exceeded iteration count");
       console.log(
         "Hints :",
-        gridIsSolved() ? hint.hints : "Couldn't generate hints"
+        isGridSolvedAndCorrect ? hint.hints : "Couldn't generate hints"
       );
-    return gridIsSolved() ? hint.hints : [];
+    }
+    return isGridSolvedAndCorrect
+      ? hint.hints.map((h) => [cellIdxToRowColIdx(h[0]), parseInt(h[1])])
+      : [];
   }
 
   function gridUseHints(hints) {
@@ -485,7 +493,8 @@
 
       var solvedList = Object.values(solves);
       solvedList.forEach((solve) => {
-        console.log(`  Setting ${solve.cellIdx} = ${solve.key}`);
+        if (isDebugLogging)
+          console.log(`  Setting ${solve.cellIdx} = ${solve.key}`);
         cellSetValue(solve.cellIdx, solve.key);
       });
       shouldContinue = solvedList.length > 0;
