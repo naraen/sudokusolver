@@ -1,4 +1,5 @@
 {
+  "name" : "sudokuSolver",
   "devDependencies": {
     "jest": "^29.5.0",
     "prettier": "2.8.6"
