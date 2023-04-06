@@ -1,5 +1,6 @@
 {
-  "name" : "sudokuSolver",
+  "name" : "sudokusolver",
+  "main" : "grid.js",
   "devDependencies": {
     "jest": "^29.5.0",
     "prettier": "2.8.6"

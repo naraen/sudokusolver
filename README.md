@@ -43,9 +43,9 @@ The command is forgiving of white spaces (tabs, blanks, newlines) while entering
 
           init grid 000100290
 	    003020600
-            000090000
+        000090000
 	    100008000
-    	    300071000
+    	300071000
 	    296000000
 	    060000003
 	    005000010
@@ -80,12 +80,12 @@ The solver automatically applies the Eliminate strategy after processing any use
 
 Outputs the grid to the console in a 9 x 9 format.  For unsolved cells possible values are shown.
 
-The number is optional.  If provided, the number is highlighted in red for ease of spotting patterns.
+The number is optional.  If provided, the number is highlighted in ${\color{green}green}$ for ease of spotting patterns.
 
 ``` 
 E.g. show grid 7
 
-will cause all number 7 in the grid to be highlighted in red.
+will cause all number 7 in the grid to be highlighted in green.
 ```
 
 ### set value
