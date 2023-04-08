@@ -1,11 +1,11 @@
 (function () {
-  "use strict";
+  'use strict';
 
-  const repl = require("./repl.js");
-  const Grid = require("./grid.js").grid;
-  const gridSetLogLevel = require("./grid.js").setLogLevel;
+  const repl = require('./repl.js');
+  const Grid = require('./grid.js').grid;
+  const gridSetLogLevel = require('./grid.js').setLogLevel;
 
-  const readline = require("readline");
+  const readline = require('readline');
 
   //TODO: Rename findsingle to findOnlyOnce
   //TODO: Rename sets to peers
@@ -13,23 +13,23 @@
   //TODO: support replay of hint history
   //TODO: Enforce numbers to be int
 
-  var inputThroughConsole = "";
+  var inputThroughConsole = '';
   var boolIsDoneReceiving = true;
   var gridFromConsoleInput;
   var hintHistory = [];
   var stash = [];
   var color = 32;
   function receiveInput(input) {
-    inputThroughConsole += (input || "").toString().replace(/[^0-9]/g, "");
+    inputThroughConsole += (input || '').toString().replace(/[^0-9]/g, '');
 
     boolIsDoneReceiving =
-      inputThroughConsole.replace(/[ \n\t]/g, "").length == 81;
+      inputThroughConsole.replace(/[ \n\t]/g, '').length == 81;
 
     if (boolIsDoneReceiving) {
       var formattedInput = inputThroughConsole;
       console.log(
-        "Received Input",
-        "\n\t" + inputThroughConsole.replace(/([0-9]{9})/g, "$1\n\t")
+        'Received Input',
+        '\n\t' + inputThroughConsole.replace(/([0-9]{9})/g, '$1\n\t')
       );
       gridFromConsoleInput = new Grid(inputThroughConsole);
     }
@@ -38,11 +38,11 @@
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
-    terminal: false,
+    terminal: false
   });
 
-  rl.on("line", (line) => {
-    if (line.indexOf("quit") > -1) {
+  rl.on('line', (line) => {
+    if (line.indexOf('quit') > -1) {
       rl.close();
       return;
     }
@@ -58,31 +58,31 @@
         runCommand(commandId, command);
       }
     } catch (e) {
-      console.error("Error while parsing input", line);
+      console.error('Error while parsing input', line);
       console.error(e);
-      console.log("¯\\_(ツ)_/¯!");
+      console.log('¯\\_(ツ)_/¯!');
     }
   });
 
   function runCommand(commandId, command) {
     const saveState = [
-      "set_value",
-      "remove_value",
-      "use_hint",
-      "use_naked_twins",
-      "use_only_choice",
-      "use_brute_force",
+      'set_value',
+      'remove_value',
+      'use_hint',
+      'use_naked_twins',
+      'use_only_choice',
+      'use_brute_force'
     ];
     const skipStatus = [
-      "init_grid",
-      "show_input",
-      "show_unsolved_count",
-      "show_hint_history",
-      "is_it_solved",
-      "is_it_stuck",
-      "is_it_correct",
-      "set_color",
-      "set_debug",
+      'init_grid',
+      'show_input',
+      'show_unsolved_count',
+      'show_hint_history',
+      'is_it_solved',
+      'is_it_stuck',
+      'is_it_correct',
+      'set_color',
+      'set_debug'
     ];
 
     if (saveState.indexOf(commandId) != -1) {
@@ -90,13 +90,13 @@
     }
 
     switch (commandId) {
-      case "init_grid":
-        inputThroughConsole = "";
+      case 'init_grid':
+        inputThroughConsole = '';
         hintHistory = [];
         stash = [];
         receiveInput(command.numbers);
         break;
-      case "show_grid":
+      case 'show_grid':
         var formattedGrid = gridFromConsoleInput.getGridForDisplay();
 
         if (command.numbers != undefined) {
@@ -106,67 +106,67 @@
           var pattern = command.numbers.value;
           formattedGrid = formattedGrid.replaceAll(
             pattern,
-            "\x1b[1m\x1b[" + color + "m" + pattern + "\x1b[0m"
+            '\x1b[1m\x1b[' + color + 'm' + pattern + '\x1b[0m'
           );
         }
         console.log(formattedGrid);
         break;
-      case "rewind_grid":
+      case 'rewind_grid':
         if (stash.length > 0) {
           var prevState = stash.pop();
           gridFromConsoleInput = new Grid(prevState);
         }
         break;
-      case "reset_grid":
+      case 'reset_grid':
         if (inputThroughConsole.length != 81) {
-          console.log("! No current grid");
+          console.log('! No current grid');
           return;
         }
         stash = [];
         gridFromConsoleInput = new Grid(inputThroughConsole);
         break;
-      case "show_input":
+      case 'show_input':
         console.log(`\n\t${inputThroughConsole
-          .replace(/([0-9]{3})/g, "$1 ")
-          .replace(/([0-9 ]{12})/g, "$1\n\t")}
+          .replace(/([0-9]{3})/g, '$1 ')
+          .replace(/([0-9 ]{12})/g, '$1\n\t')}
         `);
         break;
-      case "show_unsolved_count":
-        console.log(gridFromConsoleInput.unsolvedCount(), "unsolved cells");
+      case 'show_unsolved_count':
+        console.log(gridFromConsoleInput.unsolvedCount(), 'unsolved cells');
         break;
-      case "show_hint_history":
+      case 'show_hint_history':
         console.log(JSON.stringify(hintHistory, null, 2));
         break;
-      case "is_it_solved":
-        console.log(gridFromConsoleInput.isSolved() ? "Yes" : "No");
+      case 'is_it_solved':
+        console.log(gridFromConsoleInput.isSolved() ? 'Yes' : 'No');
         break;
-      case "is_it_stuck":
-        console.log(gridFromConsoleInput.isHalted() ? "Yes" : "No");
+      case 'is_it_stuck':
+        console.log(gridFromConsoleInput.isHalted() ? 'Yes' : 'No');
         break;
-      case "is_it_correct":
-        console.log(gridFromConsoleInput.checkForCorrectness() ? "Yes" : "No");
+      case 'is_it_correct':
+        console.log(gridFromConsoleInput.checkForCorrectness() ? 'Yes' : 'No');
         break;
-      case "use_naked_twins":
+      case 'use_naked_twins':
         gridFromConsoleInput.useNakedTwins();
         break;
-      case "use_only_choice":
+      case 'use_only_choice':
         gridFromConsoleInput.findSingleCandidates();
         break;
-      case "use_brute_force":
+      case 'use_brute_force':
         var hints = gridFromConsoleInput.useBruteForce();
         console.log(`hints = ${JSON.stringify(hints)}`);
         break;
-      case "set_color":
+      case 'set_color':
         console.log(command);
         color = parseInt(command.numbers.value);
         break;
-      case "set_debug":
-        gridSetLogLevel(command.qualifier == "on" ? "Debug" : "NOP");
+      case 'set_debug':
+        gridSetLogLevel(command.qualifier == 'on' ? 'Debug' : 'NOP');
         break;
-      case "use_hint":
+      case 'use_hint':
         var { cellIdx, value } = command;
         if (isNaN(cellIdx) || isNaN(value)) {
-          console.log("could not parse hints", command);
+          console.log('could not parse hints', command);
         } else {
           console.log(`Received hint.  ${cellIdx} = ${value}`);
           hintHistory.push([cellIdx, value]);
@@ -174,20 +174,20 @@
           gridFromConsoleInput.setValue(cellIdx, value);
         }
         break;
-      case "set_value":
+      case 'set_value':
         var { cellIdx, value } = command;
         if (isNaN(cellIdx) || isNaN(value)) {
-          console.log("could not parse command", command);
+          console.log('could not parse command', command);
         } else {
           console.log(`Applying.  ${cellIdx} = ${value}`);
 
           gridFromConsoleInput.setValue(cellIdx, value);
         }
         break;
-      case "remove_value":
+      case 'remove_value':
         var { cellIdx, value } = command;
         if (isNaN(cellIdx) || isNaN(value)) {
-          console.log("could not parse command", command);
+          console.log('could not parse command', command);
         } else {
           console.log(`Applying.  ${cellIdx} != ${value}`);
 
@@ -195,14 +195,14 @@
         }
         break;
       default:
-        console.log("¯\\_(ツ)_/¯");
+        console.log('¯\\_(ツ)_/¯');
     }
 
     if (skipStatus.indexOf(commandId) == -1) {
       console.log(
-        "Unfilled cells",
+        'Unfilled cells',
         gridFromConsoleInput.unsolvedCount(),
-        gridFromConsoleInput.isHalted() ? "Stuck" : ""
+        gridFromConsoleInput.isHalted() ? 'Stuck' : ''
       );
     }
   }
