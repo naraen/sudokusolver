@@ -168,7 +168,7 @@
     var _self = this;
 
     _self.checkForCorrectness = gridCheckForCorrectness;
-    _self.findSingleCandidates = setsFindSingleCandidates;
+    _self.useOnlyChoice = useOnlyChoice;
     _self.serialize = gridSerialize;
     _self.getGridForDisplay = gridSerializeForDisplay;
     _self.getGridForSimpleDisplay = gridSerializeForSimpleDisplay;
@@ -408,7 +408,7 @@
 
       gridInit(hint.state);
       cellSetValue(hint.cellIdx, hint.number);
-      setsFindSingleCandidates();
+      useOnlyChoice();
 
       isGridSolvedAndCorrect = gridIsSolved() && gridCheckForCorrectness();
 
@@ -445,7 +445,7 @@
   function gridUseHints(hints) {
     hints.forEach((h) => {
       cellSetValue(h[0], h[1]);
-      setsFindSingleCandidates();
+      useOnlyChoice();
     });
   }
 
@@ -472,7 +472,7 @@
       console.log(diagInfo, `Exiting.  Modified set is ${JSON.stringify(set)}`);
   }
 
-  function setsFindSingleCandidates() {
+  function useOnlyChoice() {
     var shouldContinue = true;
 
     while (shouldContinue && !isHalted && !gridIsSolved()) {

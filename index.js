@@ -7,7 +7,7 @@
 
   const readline = require('readline');
 
-  //TODO: Rename findsingle to findOnlyOnce
+
   //TODO: Rename sets to peers
   //TODO: query for solved count
   //TODO: support replay of hint history
@@ -150,7 +150,7 @@
         gridFromConsoleInput.useNakedTwins();
         break;
       case 'use_only_choice':
-        gridFromConsoleInput.findSingleCandidates();
+        gridFromConsoleInput.useOnlyChoice();
         break;
       case 'use_brute_force':
         var hints = gridFromConsoleInput.useBruteForce();
