@@ -1,0 +1,4 @@
+
+Refactor: Rename sets to peers
+Feature: query for solved count
+Feature: support replay of hint history

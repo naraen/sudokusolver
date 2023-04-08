@@ -7,12 +7,6 @@
 
   const readline = require('readline');
 
-
-  //TODO: Rename sets to peers
-  //TODO: query for solved count
-  //TODO: support replay of hint history
-  //TODO: Enforce numbers to be int
-
   var inputThroughConsole = '';
   var boolIsDoneReceiving = true;
   var gridFromConsoleInput;
