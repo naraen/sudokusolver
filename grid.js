@@ -170,6 +170,7 @@
     _self.checkForCorrectness = gridCheckForCorrectness;
     _self.useOnlyChoice = useOnlyChoice;
     _self.serialize = gridSerialize;
+    _self.deserialize = gridDeserialize;
     _self.getGridForDisplay = gridSerializeForDisplay;
     _self.getGridForSimpleDisplay = gridSerializeForSimpleDisplay;
     _self.isSolved = gridIsSolved;
@@ -182,7 +183,7 @@
       cellRemoveCandidate(rowColIdxToCellIdx(idx), v);
     _self.setValue = (idx, v) => cellSetValue(rowColIdxToCellIdx(idx), v);
 
-    gridInit(input);
+    input[0] !== '{' ? gridInit(input) : gridDeserialize(input);
   }
 
   function gridCheckForCorrectness() {
@@ -260,10 +261,10 @@
     if (isDebugLogging) console.log('solving for Naked twins');
     var removalPropagationList = [];
 
-    unsolvedSets.forEach((s, idx) => {
+    unsolvedSets.forEach((s, setIdx) => {
       var obj = {};
 
-      if (isDebugLogging) console.log(idx, JSON.stringify(s));
+      if (isDebugLogging) console.log(setIdx, JSON.stringify(s));
       s.forEach((cellIdx) => {
         var candidateValues = cellValue[cellIdx];
         if (candidateValues.toString().length != 2) {
@@ -282,11 +283,14 @@
       if (twins.length === 0) {
         return;
       }
-      if (isDebugLogging) console.log(`Found twins ${twins}`);
+
+      if (isDebugLogging)
+        console.log(`Found twins.  Set ${setIdx}, values ${twins}`);
 
       twins.forEach((t) => {
         var twinsCellIdxs = obj[t];
-        if (isDebugLogging) console.log(idx, JSON.stringify(t), twinsCellIdxs);
+        if (isDebugLogging)
+          console.log(setIdx, JSON.stringify(t), twinsCellIdxs);
 
         s.forEach((cellIdx) => {
           if (twinsCellIdxs.indexOf(cellIdx) == -1) {
@@ -300,13 +304,10 @@
     });
     if (isDebugLogging) console.log('Removal List', removalPropagationList);
     removalPropagationList.forEach((r) => {
-      console.log(`Applying ${cellIdxToRowColIdx(r[0])} != ${r[1]}`);
+      if (isDebugLogging)
+        console.log(`Applying ${cellIdxToRowColIdx(r[0])} != ${r[1]}`);
       cellRemoveCandidate(r[0], r[1]);
     });
-    //iterate through all unsolved sets
-    //identify naked twins
-    //identify cells to propagate the removal to.
-    //propagate
   }
 
   function gridPropagateCellValueToUnsolvedSets(cellIdx, cellValue) {
@@ -338,12 +339,24 @@
     );
   }
 
+  function gridDeserialize(stringState) {
+    var thisState = JSON.parse(stringState);
+    cellValue = thisState.cellValue;
+    solvedCellCount = thisState.solvedCellCount;
+    unsolvedSets = thisState.unsolvedSets;
+    propagatedTwins = thisState.propagatedTwins;
+    isHalted = thisState.isHalted;
+  }
+
   function gridSerialize() {
-    return cellValue.reduce(
-      (acc, cellValue, cellIdx) =>
-        acc + (!cellIsSolved(cellIdx) ? 0 : cellGetValueAsString(cellIdx)),
-      ''
-    );
+    var thisState = {
+      cellValue,
+      solvedCellCount,
+      unsolvedSets,
+      propagatedTwins,
+      isHalted
+    };
+    return JSON.stringify(thisState);
   }
 
   function gridSerializeForDisplay() {
@@ -377,55 +390,58 @@
     return 81 - solvedCellCount;
   }
 
+  function gridGetFirstUnsolvedCell() {
+    return cellValue
+      .reduce((acc, v) => {
+        return acc + (v > 9 ? 0 : v);
+      }, '')
+      .indexOf(0);
+  }
+
   function gridUseBruteForce() {
     var stash = [];
-    var thisState = null;
-    var firstUnsolvedPosition = null;
+    var thisState = gridSerialize();
+    var unsolvedIdx = gridGetFirstUnsolvedCell();
 
-    thisState = gridSerialize();
-    firstUnsolvedPosition = thisState.indexOf(0);
-    cellGetValueAsString(firstUnsolvedPosition)
+    cellGetValueAsString(unsolvedIdx)
       .split('')
       .forEach((num) => {
-        var valueToTry = {
-          cellIdx: firstUnsolvedPosition,
-          number: num,
+        stash.push({
           state: thisState,
-          hints: [[firstUnsolvedPosition, num]],
+          hints: [[unsolvedIdx, num]],
           tabLevel: 0
-        };
-        stash.push(valueToTry);
+        });
       });
 
     var loopCount = 50;
-    var hint = null;
+    var valueToTry = null;
     var isGridSolvedAndCorrect = gridIsSolved() && gridCheckForCorrectness();
 
     while (!isGridSolvedAndCorrect && stash.length > 0 && loopCount > 0) {
       loopCount--;
-      hint = stash.pop();
-      if (isDebugLogging) console.log('Trying :', JSON.stringify(hint.hints));
+      valueToTry = stash.shift();
+      if (isDebugLogging)
+        console.log('Trying :', JSON.stringify(valueToTry.hints));
 
-      gridInit(hint.state);
-      cellSetValue(hint.cellIdx, hint.number);
+      gridDeserialize(valueToTry.state);
+      var hints2 = [...valueToTry.hints].pop();
+
+      cellSetValue(hints2[0], hints2[1]);
       useOnlyChoice();
 
       isGridSolvedAndCorrect = gridIsSolved() && gridCheckForCorrectness();
 
       if (!isGridSolvedAndCorrect && !isHalted) {
         thisState = gridSerialize();
-        firstUnsolvedPosition = thisState.indexOf(0);
-        cellGetValueAsString(firstUnsolvedPosition)
+        unsolvedIdx = gridGetFirstUnsolvedCell();
+        cellGetValueAsString(unsolvedIdx)
           .split('')
           .forEach((num) => {
-            var valueToTry = {
-              cellIdx: firstUnsolvedPosition,
-              number: num,
+            stash.push({
               state: thisState,
-              hints: [...hint.hints, [firstUnsolvedPosition, num]],
-              tabLevel: hint.tabLevel + 1
-            };
-            stash.push(valueToTry);
+              hints: [...valueToTry.hints, [unsolvedIdx, num]],
+              tabLevel: valueToTry.tabLevel + 1
+            });
           });
       }
     }
@@ -434,11 +450,11 @@
       if (loopCount === 0) console.log('Exceeded iteration count');
       console.log(
         'Hints :',
-        isGridSolvedAndCorrect ? hint.hints : "Couldn't generate hints"
+        isGridSolvedAndCorrect ? valueToTry.hints : "Couldn't generate hints"
       );
     }
     return isGridSolvedAndCorrect
-      ? hint.hints.map((h) => [cellIdxToRowColIdx(h[0]), parseInt(h[1])])
+      ? valueToTry.hints.map((h) => [cellIdxToRowColIdx(h[0]), parseInt(h[1])])
       : [];
   }
 
