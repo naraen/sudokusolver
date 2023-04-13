@@ -1,11 +1,10 @@
 (function () {
   'use strict';
 
+  const readline = require('readline');
   const repl = require('./repl.js');
   const Grid = require('./grid.js').grid;
   const gridSetLogLevel = require('./grid.js').setLogLevel;
-
-  const readline = require('readline');
 
   var inputThroughConsole = '';
   var boolIsDoneReceiving = true;
@@ -48,9 +47,7 @@
 
     try {
       var { commandId, command } = repl.parseInput(line);
-      if (commandId != undefined) {
-        runCommand(commandId, command);
-      }
+      runCommand(commandId, command);
     } catch (e) {
       console.error('Error while parsing input', line);
       console.error(e);
@@ -192,7 +189,7 @@
         console.log('¯\\_(ツ)_/¯');
     }
 
-    if (skipStatus.indexOf(commandId) == -1) {
+    if (commandId != undefined && skipStatus.indexOf(commandId) == -1) {
       console.log(
         'Unfilled cells',
         gridFromConsoleInput.unsolvedCount(),
