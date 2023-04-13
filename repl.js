@@ -8,7 +8,10 @@
     { usecase: 'reset_grid', verb: 'reset', object: 'grid' },
     { usecase: 'show_grid', verb: 'show', object: 'grid' },
     { usecase: 'rewind_grid', verb: 'rewind', object: 'grid' },
+    { usecase: 'show_input_saved', verb: 'show', object: 'input', qualifier:'saved' },
     { usecase: 'show_input', verb: 'show', object: 'input' },
+    { usecase: 'save_input', verb: 'save', object: 'input' },
+    { usecase: 'load_input', verb: 'load', object: 'input' },
     {
       usecase: 'show_unsolved_count',
       verb: 'show',

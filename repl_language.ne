@@ -2,9 +2,9 @@
 	const moo= require('moo');
 
 	const keywords = {
-	    'command': ['show', 'unshow', 'use', 'init', 'reset', 'set', 'remove', 'is', 'rewind'],
+	    'command': ['show', 'unshow', 'use', 'init', 'reset', 'set', 'remove', 'is', 'rewind', 'save', 'load'],
 	    'object': ['grid', 'hint', 'value', 'it', 'unsolved', 'debug', 'input', 'color'],
-	    'qualifier' : ['solved', 'stuck', 'correct', 'history', 'count', 'on', 'off'],
+	    'qualifier' : ['solved', 'stuck', 'correct', 'history', 'count', 'on', 'off', 'saved'],
 	    'strategy_word' : ['brute', 'force', 'only', 'choice', 'naked', 'twins']
 	}
 

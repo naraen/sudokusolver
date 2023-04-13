@@ -1,6 +1,7 @@
 (function () {
   'use strict';
 
+  const fs = require('fs');
   const readline = require('readline');
   const repl = require('./repl.js');
   const Grid = require('./grid.js').grid;
@@ -73,7 +74,9 @@
       'is_it_stuck',
       'is_it_correct',
       'set_color',
-      'set_debug'
+      'set_debug',
+      'save_input',
+      'show_input_saved'
     ];
 
     if (saveState.indexOf(commandId) != -1) {
@@ -115,6 +118,19 @@
         }
         stash = [];
         gridFromConsoleInput = new Grid(inputThroughConsole);
+        break;
+      case 'save_input':
+        fs.appendFileSync('./savedInput.txt', '\n' + inputThroughConsole);
+        break;
+      case 'load_input':
+        var fileContents = fs.readFileSync('./savedInput.txt', 'utf8');
+        var lines = fileContents.split('\n');
+        inputThroughConsole = lines[lines.length - 1];
+        gridFromConsoleInput = new Grid(inputThroughConsole);
+        break;
+      case 'show_input_saved':
+        var fileContents = fs.readFileSync('./savedInput.txt', 'utf8');
+        console.log(fileContents);
         break;
       case 'show_input':
         console.log(`\n\t${inputThroughConsole
