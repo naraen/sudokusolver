@@ -55,6 +55,7 @@
   var isHalted = false;
   var cellValue = Array(81).fill(123456789);
   var unsolvedSets = null;
+  var propagatedTwins = {};
   var tabLevel = 0;
   var solvedCellCount = 0;
 
@@ -240,6 +241,7 @@
     isHalted = false;
     unsolvedSets = setsGetAll();
     solvedCellCount = 0;
+    propagatedTwins = {};
 
     cellValue = Array(81).fill(123456789);
 
@@ -288,6 +290,15 @@
         console.log(`Found twins.  Set ${setIdx}, values ${twins}`);
 
       twins.forEach((t) => {
+        var twinKey = `Set${setIdx}_values${t}`;
+        if (propagatedTwins[twinKey]) {
+          if (isDebugLogging) console.log(`${twinKey} already propagated`);
+          return;
+        }
+
+        propagatedTwins[twinKey] = true;
+        if (isDebugLogging) console.log(propagatedTwins);
+
         var twinsCellIdxs = obj[t];
         if (isDebugLogging)
           console.log(setIdx, JSON.stringify(t), twinsCellIdxs);
