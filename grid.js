@@ -170,6 +170,7 @@
 
     _self.checkForCorrectness = gridCheckForCorrectness;
     _self.useOnlyChoice = useOnlyChoice;
+    _self.useSharedOnly = gridUseSharedOnly;
     _self.serialize = gridSerialize;
     _self.deserialize = gridDeserialize;
     _self.getGridForDisplay = gridSerializeForDisplay;
@@ -467,6 +468,83 @@
     return isGridSolvedAndCorrect
       ? valueToTry.hints.map((h) => [cellIdxToRowColIdx(h[0]), parseInt(h[1])])
       : [];
+  }
+
+  function findSiblingSets(setIdx) {
+    return [0, 1, 2]
+      .map((j) => Math.floor(setIdx / 3) * 3 + j)
+      .filter((j) => j != setIdx);
+  }
+
+  function gridUseSharedOnly() {
+    gridUseSharedOnly_inner([18,26], cellIdxToColIdx,  cellIdxToBoxIdx, 18, 9);
+    gridUseSharedOnly_inner([18,26], cellIdxToRowIdx,  cellIdxToBoxIdx, 18, 0);
+    gridUseSharedOnly_inner([ 9,17], cellIdxToBoxIdx,  cellIdxToColIdx,  9, 18);
+    gridUseSharedOnly_inner([ 0,8], cellIdxToBoxIdx,  cellIdxToRowIdx,  0, 18);
+
+  }
+
+  function gridUseSharedOnly_inner(setRange, f1, f2, setIdxOffset, setIdxOffset2) {
+    unsolvedSets.forEach((unsolvedCellsInSet, setIdx) => {
+      if (isHalted) return;
+      if (setIdx < setRange[0] || setIdx > setRange[1]) {
+        return;
+      }
+
+      if (isDebugLogging) console.log(`SetIdx ${setIdx}`)  
+      var obj = unsolvedCellsInSet.reduce((acc, cellIdx) => {
+        var candidateValues = cellValue[cellIdx];
+        var colIdx = f1(cellIdx);
+
+        candidateValues
+          .toString()
+          .split('')
+          .reduce((innerAcc, v) => {
+            if (innerAcc[v] == undefined) innerAcc[v] = { cols: {} };
+            if (innerAcc[v].cols[colIdx] == undefined)
+              innerAcc[v].cols[colIdx] = [];
+
+            innerAcc[v].cols[colIdx].push(cellIdx);
+            return innerAcc;
+          }, acc);
+        return acc;
+      }, {});
+
+      var obj2 = Object.keys(obj)
+        .reduce((acc, cellValue) => { //array of values to propagate & the target sets 
+        var indexer = 'cols';
+        if (Object.keys(obj[cellValue][indexer]).length === 1) {
+          acc.push ( { 
+            currSetIdx : setIdx, 
+            cellValue : cellValue,
+            propagationSetIdx :  parseInt(Object.keys(obj[cellValue][indexer])[0]) + setIdxOffset2,
+          });
+        }
+        return acc;
+      }, [])
+      .map( (constraint) => {
+        //identify cells to propaate to
+        var unsolvedCellsToPropagate = unsolvedSets[constraint.propagationSetIdx];
+        var propagationCellsNotInCurrentSet = unsolvedCellsToPropagate
+          .filter( (cellIdx) => {
+            return (f2(cellIdx) + setIdxOffset) !=constraint.currSetIdx
+          })
+
+          constraint.cellsToPropagate = propagationCellsNotInCurrentSet;
+          return constraint;
+      })
+      .reduce( (acc, constraint) => {
+        constraint.cellsToPropagate.forEach ( (cellIdx) => {
+          acc.push( { cellIdx, valueToRemove : constraint.cellValue});
+        }); 
+        return acc;
+      }, []);
+      obj2.forEach( (constraint) => {
+        console.log(`    ${cellIdxToRowColIdx(constraint.cellIdx)} != ${constraint.valueToRemove}`);
+        cellRemoveCandidate(constraint.cellIdx, constraint.valueToRemove) 
+      })
+      return;
+    });
   }
 
   function gridUseHints(hints) {

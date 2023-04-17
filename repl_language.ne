@@ -5,7 +5,7 @@
 	    'command': ['show', 'unshow', 'use', 'init', 'reset', 'set', 'remove', 'is', 'rewind', 'save', 'load'],
 	    'object': ['grid', 'hint', 'value', 'it', 'unsolved', 'debug', 'input', 'color'],
 	    'qualifier' : ['solved', 'stuck', 'correct', 'history', 'count', 'on', 'off', 'saved'],
-	    'strategy_word' : ['brute', 'force', 'only', 'choice', 'naked', 'twins']
+	    'strategy_word' : ['brute', 'force', 'only', 'choice', 'naked', 'twins', 'shared']
 	}
 
 	const lexer = moo.compile({

@@ -39,7 +39,8 @@
     { usecase: 'use_hint', verb: 'use', object: 'hint' },
     { usecase: 'use_only_choice', verb: 'use', strategy: 'only choice' },
     { usecase: 'use_brute_force', verb: 'use', strategy: 'brute force' },
-    { usecase: 'use_naked_twins', verb: 'use', strategy: 'naked twins' }
+    { usecase: 'use_naked_twins', verb: 'use', strategy: 'naked twins' },
+    { usecase: 'use_shared_only', verb: 'use', strategy: 'shared only' },
   ];
 
   function parseInput(input) {

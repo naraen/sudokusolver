@@ -63,7 +63,8 @@
       'use_hint',
       'use_naked_twins',
       'use_only_choice',
-      'use_brute_force'
+      'use_brute_force',
+      'use_shared_only'
     ];
     const skipStatus = [
       'init_grid',
@@ -169,6 +170,9 @@
         break;
       case 'set_debug':
         gridSetLogLevel(command.qualifier == 'on' ? 'Debug' : 'NOP');
+        break;
+      case 'use_shared_only' :
+        gridFromConsoleInput.useSharedOnly();
         break;
       case 'use_hint':
         var { cellIdx, value } = command;
